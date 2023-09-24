@@ -19,5 +19,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=HealthCheck}/{action=Index}");
 
 app.Run();
