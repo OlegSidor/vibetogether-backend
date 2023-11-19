@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vibetogether-backend", "vib
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerHub", "PlayerHub\PlayerHub.csproj", "{1C89EB85-9196-42DD-858D-518D5650CDFC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VibeTogether.Authorization", "VibeTogether.Authorization\VibeTogether.Authorization.csproj", "{7EBFE391-3811-44EE-9654-B4D8572FDB0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{1C89EB85-9196-42DD-858D-518D5650CDFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C89EB85-9196-42DD-858D-518D5650CDFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C89EB85-9196-42DD-858D-518D5650CDFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EBFE391-3811-44EE-9654-B4D8572FDB0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EBFE391-3811-44EE-9654-B4D8572FDB0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EBFE391-3811-44EE-9654-B4D8572FDB0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EBFE391-3811-44EE-9654-B4D8572FDB0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
