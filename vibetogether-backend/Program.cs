@@ -1,19 +1,19 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using PlayerHub;
+using System.Text;
 using VibeTogether.Authorization.Data;
-using VibeTogether.Authorization.Helpers;
 using VibeTogether.Authorization.Models;
 using vibetogether_backend;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-
-var config = builder.Configuration;
-var startup = new Startup(config);
-startup.ConfigureServices();
-
 //signalr cors
 builder.Services.AddCors(options =>
 {
@@ -29,7 +29,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<VibeTogetherDbContext>(options =>
-    options.UseSqlServer(ConnectionStringHelper.ConnectionString));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddIdentity<VibeUser, IdentityRole>(
     options =>
     {
@@ -43,6 +44,45 @@ builder.Services.AddIdentity<VibeUser, IdentityRole>(
     .AddEntityFrameworkStores<VibeTogetherDbContext>()
     .AddDefaultTokenProviders();
 
+var jwtKey = builder.Configuration.GetSection("JwtKey").Value;
+
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidIssuer = builder.Configuration.GetSection("JwtIssuer").Value,
+        ValidAudience = builder.Configuration.GetSection("JwtAudience").Value,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/player")))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -61,7 +101,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 
 //Signalar Hub
 app.MapHub<Player>("/player");

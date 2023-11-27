@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using PlayerHub.Interfaces;
+using PlayerHub.Models;
+using System.Text.Json;
 
 namespace PlayerHub
 {
@@ -15,22 +18,28 @@ namespace PlayerHub
         }
         public override Task OnConnectedAsync()
         {
-            _logger.LogInformation($"User connected: {Context.ConnectionId}");
+            var user = getUser();
+
+            _logger.LogInformation($"User connected: {user.UserId} ({user.Username})");
             return base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            var user = getUser();
+
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, getGroupId());
-            _roomManager.DisconnectUser(Context.ConnectionId);
-            _logger.LogInformation($"User disconnected: {Context.ConnectionId}");
+            _roomManager.DisconnectUser(user);
+            _logger.LogInformation($"User disconnected: {user.UserId} ({user.Username})");
             await base.OnDisconnectedAsync(exception);
         }
 
 
         public async Task AssignGroupAsync(string groupId)
         {
-            _roomManager.ConnectUser(groupId, Context.ConnectionId);
+            var user = getUser();
+
+            _roomManager.ConnectUser(groupId, user);
 
             var roomTime = _roomManager.getCurrentTime(groupId);
             await Clients.Caller.ChangeTimeAsync(roomTime);
@@ -66,8 +75,9 @@ namespace PlayerHub
         public async Task userIsReadyAsync() {
 
             var group = getGroupId();
+            var user = getUser();
 
-            _roomManager.userIsReady(group, Context.ConnectionId);  
+            _roomManager.userIsReady(group, user);  
 
             if (_roomManager.everyOneIsReady(group))
             {
@@ -77,11 +87,27 @@ namespace PlayerHub
 
         private string getGroupId()
         {
-            var group = _roomManager.GetRoomId(Context.ConnectionId);
+            var user = getUser();
+
+            var group = _roomManager.GetRoomId(user);
             if (group == null)
                 throw new ArgumentNullException($"Cant find group for user {Context.ConnectionId}");
 
             return group;
+        }
+
+        private User getUser()
+        {
+            string? userInfo = Context?.User?.Claims?.FirstOrDefault(x => x.Type == "UserInfo")?.Value;
+            if (userInfo != null) { 
+                var user = JsonSerializer.Deserialize<User>(userInfo);
+                if (user != null)
+                {
+                    return user;
+                }
+            }
+
+            return _roomManager.getAnonymousUser(Context.ConnectionId);
         }
 
     }

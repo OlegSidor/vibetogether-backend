@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using VibeTogether.Authorization.JWT;
 using VibeTogether.Authorization.Models;
 using VibeTogether.Authorization.Services;
 
@@ -7,12 +8,10 @@ namespace vibetogether_backend.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly AuthorizationService _as;
-        private string _token;
-
-        public AccountController(SignInManager<VibeUser> signInManager, UserManager<VibeUser> userManager)
+        private readonly IAuthorizationService _as;
+        public AccountController(IAuthorizationService authorizationService)
         {
-            _as = new AuthorizationService(signInManager, userManager);
+            _as = authorizationService;
         }
 
         public IActionResult Index()
@@ -30,14 +29,12 @@ namespace vibetogether_backend.Controllers
 
             try
             {
-                _token = await _as.Login(loginData);
+                return Json(await _as.Login(loginData));
             }
             catch (InvalidOperationException e)
             {
                 return BadRequest(e.Message);
             }
-
-            return Json(_token);
         }
 
         [HttpPost("Register")]
@@ -50,14 +47,13 @@ namespace vibetogether_backend.Controllers
 
             try
             {
-                _token = await _as.Register(registerData);
+                return Json(await _as.Register(registerData));
             }
             catch (InvalidOperationException e)
             {
                 return BadRequest(e.Message);
             }
 
-            return Json(_token);
         }
 
         [HttpPost("Logout")]

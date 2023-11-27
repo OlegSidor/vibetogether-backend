@@ -9,20 +9,21 @@ namespace PlayerHub.Interfaces
 {
     public class RoomManager : IRoomManager
     {
-        private Dictionary<string, string> UserGroups = new Dictionary<string, string>();
+        private Dictionary<User, string> UserGroups = new Dictionary<User, string>();
+        private Dictionary<string, User> AnonymousUsers = new Dictionary<string, User>();
         private Dictionary<string, double> RoomTime = new Dictionary<string, double>();
-        private Dictionary<string, List<UserReady>> RoomReady = new Dictionary<string, List<UserReady>>();
-        public void ConnectUser(string roomId, string connectionId)
+        private Dictionary<string, List<User>> RoomReady = new Dictionary<string, List<User>>();
+        public void ConnectUser(string roomId, User user)
         {
-            UserGroups.Add(connectionId, roomId);
+            UserGroups.Add(user, roomId);
 
             if (RoomReady.ContainsKey(roomId))
             {
-                RoomReady[roomId].Add(new UserReady { userId = connectionId });
+                RoomReady[roomId].Add(user);
             }
             else
             {
-                RoomReady.Add(roomId, new List<UserReady> { new UserReady { userId = connectionId } }); 
+                RoomReady.Add(roomId, new List<User> { user }); 
             }
         }
 
@@ -31,29 +32,34 @@ namespace PlayerHub.Interfaces
             RoomTime[roomId] = time;
         }
 
-        public void DisconnectUser(string connectionId)
+        public void DisconnectUser(User user)
         {
 
-            if (UserGroups.ContainsKey(connectionId))
+            if (UserGroups.ContainsKey(user))
             {
-                var roomId = UserGroups[connectionId];
+                var roomId = UserGroups[user];
 
                 if (RoomReady.ContainsKey(roomId))
                 {
-                    var userReady = RoomReady[roomId].FirstOrDefault(x => x.userId == connectionId);
+                    var userReady = RoomReady[roomId].FirstOrDefault(x => x.UserId == user.UserId);
                     if (userReady != null)
                         RoomReady[roomId].Remove(userReady);
                 }
 
-                UserGroups.Remove(connectionId);
+                UserGroups.Remove(user);
+            }
+            if (AnonymousUsers.ContainsValue(user))
+            {
+                var connectionId = AnonymousUsers.First(x => x.Value.Equals(user)).Key;
+                AnonymousUsers.Remove(connectionId);
             }
         }
 
-        public string GetRoomId(string connectionId)
+        public string GetRoomId(User user)
         {
-            if (UserGroups.ContainsKey(connectionId))
+            if (UserGroups.ContainsKey(user))
             {
-                return UserGroups[connectionId];
+                return UserGroups[user];
             }
 
             return null;
@@ -76,19 +82,34 @@ namespace PlayerHub.Interfaces
                 return false;
             }
 
-            return RoomReady[roomId].All(x => x.isReady);
+            return RoomReady[roomId].All(x => x.IsReady);
         }
 
-        public void userIsReady(string roomId, string connectionId)
+        public void userIsReady(string roomId, User user)
         {
             if (!RoomReady.ContainsKey(roomId))
             {
                 return;
             }
 
-            var userReady = RoomReady[roomId].FirstOrDefault(x => x.userId == connectionId);
+            var userReady = RoomReady[roomId].FirstOrDefault(x => x.UserId == user.UserId);
             if(userReady != null) 
-                userReady.isReady = true;
+                userReady.IsReady = true;
+        }
+
+        public User getAnonymousUser(string connectionId)
+        {
+            if(AnonymousUsers.ContainsKey(connectionId))
+                return AnonymousUsers[connectionId];
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                Username = "Anonymous"
+            };
+
+            AnonymousUsers.Add(connectionId, user);
+            return user;
         }
     }
 }

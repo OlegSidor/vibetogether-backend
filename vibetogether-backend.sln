@@ -5,9 +5,9 @@ VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "vibetogether-backend", "vibetogether-backend\vibetogether-backend.csproj", "{4FFC9C99-A939-4FAA-8726-BA20BB57FEAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlayerHub", "PlayerHub\PlayerHub.csproj", "{1C89EB85-9196-42DD-858D-518D5650CDFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VibeTogether.PlayerHub", "PlayerHub\VibeTogether.PlayerHub.csproj", "{1C89EB85-9196-42DD-858D-518D5650CDFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VibeTogether.Authorization", "VibeTogether.Authorization\VibeTogether.Authorization.csproj", "{7EBFE391-3811-44EE-9654-B4D8572FDB0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VibeTogether.Authorization", "VibeTogether.Authorization\VibeTogether.Authorization.csproj", "{7EBFE391-3811-44EE-9654-B4D8572FDB0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,29 +1,31 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Text;
-using VibeTogether.Authorization.Helpers;
+using VibeTogether.Authorization.JWT;
 using VibeTogether.Authorization.Models;
 
 namespace VibeTogether.Authorization.Services
 {
-    public class AuthorizationService
+    public class AuthorizationService : IAuthorizationService
     {
         private readonly SignInManager<VibeUser> _signInManager;
         private readonly UserManager<VibeUser> _userManager;
+        private readonly IJwtHelper _jwt;
 
-        public AuthorizationService(SignInManager<VibeUser> sim, UserManager<VibeUser> um)
+        public AuthorizationService(SignInManager<VibeUser> sim, UserManager<VibeUser> um, IJwtHelper jwt)
         {
             _signInManager = sim;
             _userManager = um;
+            _jwt = jwt;
         }
 
         public async Task<string> Login(LoginModel lm)
         {
-            var loginResult = _signInManager.PasswordSignInAsync(lm.Username, lm.Password, lm.RememberMe, false).Result;
+            var loginResult = _signInManager.PasswordSignInAsync(lm.Username, lm.Password, true, false).Result;
 
             if (loginResult.Succeeded)
             {
                 var user = await _userManager.FindByNameAsync(lm.Username);
-                return JwtHelper.GenerateJwtToken(user);
+                return _jwt.GenerateJwtToken(user);
             }
             else
             {
@@ -44,7 +46,7 @@ namespace VibeTogether.Authorization.Services
             if (registerResult.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return JwtHelper.GenerateJwtToken(user);
+                return _jwt.GenerateJwtToken(user);
             }
             else
             {
