@@ -1,15 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Negotiate;
-using Microsoft.AspNetCore.Authorization;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PlayerHub;
 using System.Text;
 using VibeTogether.Authorization.Data;
 using VibeTogether.Authorization.Models;
 using vibetogether_backend;
+using vibetogether_backend.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
@@ -26,10 +25,12 @@ builder.Services.AddCors(options =>
                         .SetIsOriginAllowed(hostName => true));
 });
 
-builder.Services.AddControllers();
+
+builder.Services.AddDbContext<MainContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDbContext<VibeTogetherDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Authority")));
 
 builder.Services.AddIdentity<VibeUser, IdentityRole>(
     options =>
@@ -86,6 +87,7 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddControllers();
 
 Bootstrap.DependencyIndection(builder.Services);
 
